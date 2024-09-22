@@ -1,4 +1,3 @@
-// mainwindow.h
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -35,11 +34,9 @@ private slots:
     void on_copyButton_clicked();
 
 private:
-    // Linked List and Database
     LinkedList<int> *list_;
     Database *db_;
 
-    // GUI components
     QWidget *centralWidget_;
     QGraphicsView *graphicsView_;
     QGraphicsScene *scene_;
@@ -55,9 +52,8 @@ private:
     QLineEdit *indexInput_;
     QLabel *statusLabel_;
     QLabel *titleLabel_;
-    QVector<QGraphicsEllipseItem*> ellipses_;  // Store pointers to ellipse items
+    QVector<QGraphicsEllipseItem*> ellipses_;
 
-    // Layouts
     QVBoxLayout *mainLayout_;
     QHBoxLayout *buttonLayout_;
     QHBoxLayout *inputLayout_;
