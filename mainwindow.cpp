@@ -1,4 +1,3 @@
-// mainwindow.cpp
 #include "mainwindow.h"
 #include <QMessageBox>
 #include <QFont>
@@ -9,21 +8,17 @@ MainWindow::MainWindow(QWidget *parent)
     scene_(new QGraphicsScene(this)),
     db_(new Database()) {
 
-    // Initialize GUI components
     centralWidget_ = new QWidget(this);
     setCentralWidget(centralWidget_);
 
-    // Title label
     titleLabel_ = new QLabel("Linked List", this);
     titleLabel_->setAlignment(Qt::AlignCenter);
     titleLabel_->setFont(QFont("Arial", 16, QFont::Bold));
 
-    // Graphics View for visualization
     graphicsView_ = new QGraphicsView(scene_, this);
     graphicsView_->setMinimumHeight(150);
     graphicsView_->setAlignment(Qt::AlignCenter);
 
-    // Initialize buttons
     //addButton_ = new QPushButton("Add", this);
     addBeforeButton_ = new QPushButton("Add Before", this);
     addAfterButton_ = new QPushButton("Add After", this);
@@ -33,7 +28,6 @@ MainWindow::MainWindow(QWidget *parent)
     sizeCapacityButton_ = new QPushButton("Size/Capacity", this);
     copyButton_ = new QPushButton("Copy", this);
 
-    // Apply style sheets for modern UI
     QString buttonStyle = "QPushButton {"
                           "background-color: #3498db;"
                           "color: white;"
@@ -53,10 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
     sizeCapacityButton_->setStyleSheet(buttonStyle);
     copyButton_->setStyleSheet(buttonStyle);
 
-    // Title label font customization
     titleLabel_->setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50;");
 
-    // Node input and status display
     nodeInput_ = new QLineEdit(this);
     nodeInput_->setPlaceholderText("Enter node value");
     indexInput_ = new QLineEdit(this);
@@ -64,12 +56,10 @@ MainWindow::MainWindow(QWidget *parent)
     statusLabel_ = new QLabel("Status: Ready", this);
     statusLabel_->setAlignment(Qt::AlignLeft);
 
-    // Set up layouts
     mainLayout_ = new QVBoxLayout();
     buttonLayout_ = new QHBoxLayout();
     inputLayout_ = new QHBoxLayout();
 
-    // Add widgets to layouts
     mainLayout_->addWidget(titleLabel_);
     mainLayout_->addWidget(graphicsView_);
 
@@ -94,7 +84,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     centralWidget_->setLayout(mainLayout_);
 
-    // Connect signals to slots
     //connect(addButton_, &QPushButton::clicked, this, &MainWindow::on_addButton_clicked);
     connect(addBeforeButton_, &QPushButton::clicked, this, &MainWindow::on_addBeforeButton_clicked);
     connect(addAfterButton_, &QPushButton::clicked, this, &MainWindow::on_addAfterButton_clicked);
@@ -104,10 +93,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(sizeCapacityButton_, &QPushButton::clicked, this, &MainWindow::on_sizeCapacityButton_clicked);
     connect(copyButton_, &QPushButton::clicked, this, &MainWindow::on_copyButton_clicked);
 
-    // Database connection
     db_->connect();
 
-    // Initial visualization
     updateVisualization();
 }
 
@@ -126,15 +113,12 @@ MainWindow::~MainWindow() {
     QFont font("Arial", 10, QFont::Bold);
 
     while (current) {
-        // Create a circle for the node
         QGraphicsEllipseItem *circle = scene_->addEllipse(x, 0, nodeSize, nodeSize, QPen(Qt::black), QBrush(Qt::white));
 
-        // Add text inside the circle
         QGraphicsTextItem *text = scene_->addText(QString::number(current->data), font);
         text->setDefaultTextColor(Qt::black);
         text->setPos(x + nodeSize / 2 - text->boundingRect().width() / 2, nodeSize / 2 - text->boundingRect().height() / 2);
 
-        // Draw arrow to the next node
         if (current->next) {
             QGraphicsLineItem *line = scene_->addLine(x + nodeSize, nodeSize / 2, x + spacing, nodeSize / 2, QPen(Qt::black, 2));
             QPolygonF arrowHead;
@@ -155,7 +139,7 @@ MainWindow::~MainWindow() {
 }*/
 void MainWindow::updateVisualization() {
     scene_->clear();
-    ellipses_.clear(); // Clear the previous list of ellipses
+    ellipses_.clear();
 
     Node<int>* current = list_->head();
     int x = 0;
@@ -164,16 +148,13 @@ void MainWindow::updateVisualization() {
     QFont font("Arial", 10, QFont::Bold);
 
     while (current) {
-        // Create a circle for the node
         QGraphicsEllipseItem *circle = scene_->addEllipse(x, 0, nodeSize, nodeSize, QPen(Qt::black), QBrush(Qt::white));
-        ellipses_.append(circle); // Store the pointer to the ellipse item
+        ellipses_.append(circle);
 
-        // Add text inside the circle
         QGraphicsTextItem *text = scene_->addText(QString::number(current->data), font);
         text->setDefaultTextColor(Qt::black);
         text->setPos(x + nodeSize / 2 - text->boundingRect().width() / 2, nodeSize / 2 - text->boundingRect().height() / 2);
 
-        // Draw arrow to the next node
         if (current->next) {
             QGraphicsLineItem *line = scene_->addLine(x + nodeSize, nodeSize / 2, x + spacing, nodeSize / 2, QPen(Qt::black, 2));
             QPolygonF arrowHead;
@@ -194,15 +175,13 @@ void MainWindow::updateVisualization() {
 
 
 void MainWindow::animateNode(QGraphicsEllipseItem *node) {
-    // Animate the opacity directly using QPropertyAnimation
     QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect();
     node->setGraphicsEffect(opacityEffect);
 
-    // Now create the animation on the opacity effect
     QPropertyAnimation *animation = new QPropertyAnimation(opacityEffect, "opacity");
     animation->setDuration(500);
-    animation->setStartValue(0.0);  // Start transparent
-    animation->setEndValue(1.0);    // End fully visible
+    animation->setStartValue(0.0);
+    animation->setEndValue(1.0);
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
@@ -223,9 +202,8 @@ void MainWindow::updateStatus(const QString &message) {
 
         db_->saveList(*list_);
 
-        // Animate visualization update
         updateVisualization();
-        //animateNode(qgraphicsitem_cast<QGraphicsEllipseItem*>(scene_->items().last()));  // Animate the newly added node
+        //animateNode(qgraphicsitem_cast<QGraphicsEllipseItem*>(scene_->items().last()));
         animateNode(ellipses_.last());
 
         updateStatus("Added value " + QString::number(value));
@@ -240,7 +218,7 @@ void MainWindow::on_addBeforeButton_clicked() {
     int index = nodeInput_->text().toInt(&ok);
 
     if (ok && list_->size() == 0) {
-        list_->addAfter(nullptr, value); // Adding after nullptr means adding to the head
+        list_->addAfter(nullptr, value);
         db_->saveList(*list_);
         updateVisualization();
         updateStatus("Added value " + QString::number(value) + " as the first item");
@@ -287,12 +265,11 @@ void MainWindow::fadeOutNode(QGraphicsEllipseItem *node) {
 
     QPropertyAnimation *animation = new QPropertyAnimation(effect, "opacity");
     animation->setDuration(500);
-    animation->setStartValue(1);  // Start fully visible
-    animation->setEndValue(0);    // End transparent
+    animation->setStartValue(1);
+    animation->setEndValue(0);
 
-    // Use a lambda to delete the node safely after the animation finishes
     connect(animation, &QPropertyAnimation::finished, this, [node]() {
-        delete node;  // Safely delete the node
+        delete node;
     });
 
     animation->start(QAbstractAnimation::DeleteWhenStopped);
@@ -342,26 +319,23 @@ void MainWindow::on_copyButton_clicked() {
     LinkedList<int>* copiedList = list_->copy();
     updateStatus("List copied");
     QMessageBox::information(this, "Copy List", "The linked list has been copied.");
-    delete copiedList; // Clean up since we're not using it further
+    delete copiedList;
 }
 
 void MainWindow::highlightNode(QGraphicsEllipseItem *node) {
-    // Create a time line for the animation
-    QTimeLine *timeLine = new QTimeLine(500); // Animation duration
+    QTimeLine *timeLine = new QTimeLine(500);
     timeLine->setFrameRange(0, 100);
-    timeLine->setLoopCount(2);  // Scale up, then back down
+    timeLine->setLoopCount(2);
 
-    // Create a graphics item animation and link it to the timeline
     QGraphicsItemAnimation *animation = new QGraphicsItemAnimation();
     animation->setItem(node);
     animation->setTimeLine(timeLine);
 
-    // Scale the node from 1.0 to 1.3 and back
-    animation->setScaleAt(0, 1.0, 1.0);  // Initial scale
-    animation->setScaleAt(0.5, 1.3, 1.3);  // Enlarged scale at halfway point
-    animation->setScaleAt(1, 1.0, 1.0);  // Back to original scale
+    animation->setScaleAt(0, 1.0, 1.0);
+    animation->setScaleAt(0.5, 1.3, 1.3);
+    animation->setScaleAt(1, 1.0, 1.0);
 
-    timeLine->start();  // Start the animation
+    timeLine->start();
 }
 
 

@@ -1,4 +1,3 @@
-// linkedlist_impl.h
 #ifndef LINKEDLIST_IMPL_H
 #define LINKEDLIST_IMPL_H
 
@@ -15,7 +14,7 @@ LinkedList<T>::~LinkedList() {
 template <typename T>
 void LinkedList<T>::addAfter(Node<T>* node, const T& value) {
     if (!node) {
-        // Add at the beginning if node is null
+        // Adding at the beginning
         Node<T>* newNode = new Node<T>(value);
         newNode->next = head_;
         head_ = newNode;
@@ -30,7 +29,7 @@ void LinkedList<T>::addAfter(Node<T>* node, const T& value) {
 template <typename T>
 void LinkedList<T>::addBefore(Node<T>* node, const T& value) {
     if (node == head_ || !head_) {
-        // Add at the beginning
+        // Adding at the beginning
         Node<T>* newNode = new Node<T>(value);
         newNode->next = head_;
         head_ = newNode;
@@ -71,7 +70,9 @@ void LinkedList<T>::remove(Node<T>* node) {
 
 template <typename T>
 Node<T>* LinkedList<T>::access(int index) {
-    if (index < 0 || index >= size_) return nullptr;
+    if (index < 0 || index >= size_) {
+        return nullptr;
+    }
     Node<T>* current = head_;
     for (int i = 0; i < index; ++i) {
         current = current->next;
@@ -98,7 +99,7 @@ int LinkedList<T>::size() const {
 
 template <typename T>
 int LinkedList<T>::capacity() const {
-    return size_; // For linked list, capacity equals size
+    return size_;
 }
 
 template <typename T>

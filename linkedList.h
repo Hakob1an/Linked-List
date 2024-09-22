@@ -1,4 +1,3 @@
-// linkedlist.h
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 
@@ -17,7 +16,7 @@ public:
     Node<T>* access(int index);
     void clear();
     int size() const;
-    int capacity() const; // For linked list, capacity is dynamic
+    int capacity() const;
     LinkedList<T>* copy() const;
 
     Node<T>* head() const { return head_; }
@@ -29,7 +28,6 @@ private:
     int size_;
 };
 
-// Implementations should be included in the header for templates
 #include "linkedList_impl.h"
 
 #endif // LINKEDLIST_H

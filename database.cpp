@@ -1,35 +1,30 @@
-// database.cpp
 #include "database.h"
 #include <QStandardPaths>
 #include <QCoreApplication>
 
-// Constructor
+
 Database::Database() {
-    // Set the database path to the user's home directory or a directory of your choice
     QString dbPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/linkedlist.db";
 
-    // Ensure the directory exists
+    //Checking if the dir exist >_<
     QDir dir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
     if (!dir.exists()) {
-        dir.mkpath(".");  // Create the directory if it doesn't exist
+        dir.mkpath(".");
     }
 
     db_ = QSqlDatabase::addDatabase("QSQLITE");
     db_.setDatabaseName(dbPath);
 
-    // Output the actual database path for debugging
     qDebug() << "Database path:" << db_.databaseName();
     qDebug() << "Available drivers:" << QSqlDatabase::drivers();
 }
 
-// Destructor
 Database::~Database() {
     if (db_.isOpen()) {
         db_.close();
     }
 }
 
-// Establish database connection
 bool Database::connect() {
     if (!db_.open()) {
         qDebug() << "Error: connection with database failed:" << db_.lastError().text();
@@ -38,7 +33,6 @@ bool Database::connect() {
 
     qDebug() << "Database: connection ok";
 
-    // Check or create the table
     QSqlQuery query(db_);
     if (!query.exec("CREATE TABLE IF NOT EXISTS list (id INTEGER PRIMARY KEY, data INTEGER)")) {
         qDebug() << "Failed to create table 'list':" << query.lastError().text();
@@ -49,7 +43,6 @@ bool Database::connect() {
     return true;
 }
 
-// Save the linked list to the database
 void Database::saveList(const LinkedList<int>& list) {
     if (!db_.isOpen()) {
         qDebug() << "Database is not open!";
@@ -74,8 +67,6 @@ void Database::saveList(const LinkedList<int>& list) {
     }
 }
 
-// Load the linked list from the database
-// Load the linked list from the database
 LinkedList<int>* Database::loadList() {
     LinkedList<int>* list = new LinkedList<int>();
     if (!db_.isOpen()) {
@@ -93,11 +84,11 @@ LinkedList<int>* Database::loadList() {
     while (query.next()) {
         int data = query.value(0).toInt();
         if (lastNode == nullptr) {
-            list->addAfter(nullptr, data); // Add as the first node
-            lastNode = list->head();       // Update lastNode to point to the first node
+            list->addAfter(nullptr, data);
+            lastNode = list->head();
         } else {
             list->addAfter(lastNode, data);
-            lastNode = lastNode->next;     // Move to the next node
+            lastNode = lastNode->next;
         }
     }
     return list;
