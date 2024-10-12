@@ -282,13 +282,19 @@ void MainWindow::on_removeButton_clicked() {
     if (ok && index >= 0 && index < list_->size()) {
         Node<int>* node = list_->access(index);
         if (node) {
-            /*QGraphicsEllipseItem *item = dynamic_cast<QGraphicsEllipseItem *>(scene_->items()[index]);
-            if (item) {
-                fadeOutNode(item);  // Animate removal
-            }*/
             fadeOutNode(ellipses_[index]);
+
             list_->remove(node);
-            list_->printList();
+
+            QSqlQuery query;
+            query.prepare("DELETE FROM list WHERE id = :id");
+            query.bindValue(":id", index);
+            if (!query.exec()) {
+                qDebug() << "Failed to delete node from database: " << query.lastError().text();
+            } else {
+                qDebug() << "Node deleted from database";
+            }
+
             updateVisualization();
             updateStatus("Removed node at index " + QString::number(index));
             indexInput_->clear();
@@ -299,6 +305,7 @@ void MainWindow::on_removeButton_clicked() {
         updateStatus("Invalid index for removal");
     }
 }
+
 
 
 void MainWindow::on_cleanButton_clicked() {
