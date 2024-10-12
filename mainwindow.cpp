@@ -215,7 +215,7 @@ void MainWindow::updateStatus(const QString &message) {
 void MainWindow::on_addBeforeButton_clicked() {
     bool ok;
     int value = nodeInput_->text().toInt(&ok);
-    int index = nodeInput_->text().toInt(&ok);
+    int index = indexInput_->text().toInt(&ok);
 
     if (ok && list_->size() == 0) {
         list_->addAfter(nullptr, value);
@@ -278,7 +278,7 @@ void MainWindow::fadeOutNode(QGraphicsEllipseItem *node) {
 
 void MainWindow::on_removeButton_clicked() {
     bool ok;
-    int index = nodeInput_->text().toInt(&ok);
+    int index = indexInput_->text().toInt(&ok);
     if (ok && index >= 0 && index < list_->size()) {
         Node<int>* node = list_->access(index);
         if (node) {
@@ -291,7 +291,7 @@ void MainWindow::on_removeButton_clicked() {
             list_->printList();
             updateVisualization();
             updateStatus("Removed node at index " + QString::number(index));
-            nodeInput_->clear();
+            indexInput_->clear();
         } else {
             updateStatus("Node not found at index " + QString::number(index));
         }
@@ -316,11 +316,26 @@ void MainWindow::on_sizeCapacityButton_clicked() {
 }
 
 void MainWindow::on_copyButton_clicked() {
-    LinkedList<int>* copiedList = list_->copy();
-    updateStatus("List copied");
-    QMessageBox::information(this, "Copy List", "The linked list has been copied.");
-    delete copiedList;
+    // Load the list from the database
+    LinkedList<int>* copiedList = db_->loadList();
+
+    // If the list is successfully loaded, replace the current list
+    if (copiedList) {
+        delete list_;  // Delete the current list
+        list_ = copiedList;  // Assign the loaded list
+
+        // Update the visualization to reflect the new list
+        updateVisualization();
+
+        // Update the status
+        updateStatus("List loaded from database");
+        QMessageBox::information(this, "Copy List", "The linked list has been loaded from the database.");
+    } else {
+        updateStatus("Failed to load list from database");
+        QMessageBox::warning(this, "Error", "Failed to load linked list from the database.");
+    }
 }
+
 
 void MainWindow::highlightNode(QGraphicsEllipseItem *node) {
     QTimeLine *timeLine = new QTimeLine(500);
@@ -341,7 +356,7 @@ void MainWindow::highlightNode(QGraphicsEllipseItem *node) {
 
 void MainWindow::on_accessButton_clicked() {
     bool ok;
-    int index = nodeInput_->text().toInt(&ok);
+    int index = indexInput_->text().toInt(&ok);
     if (ok && index >= 0 && index < list_->size()) {
         Node<int>* node = list_->access(index);
         if (node) {
@@ -352,7 +367,7 @@ void MainWindow::on_accessButton_clicked() {
             highlightNode(ellipses_[index]);
             updateStatus("Accessed node at index " + QString::number(index) + " with value " + QString::number(node->data));
             QMessageBox::information(this, "Node Access", "Node at index " + QString::number(index) + " has value " + QString::number(node->data));
-            nodeInput_->clear();
+            indexInput_->clear();
         } else {
             updateStatus("Node not found at index " + QString::number(index));
         }

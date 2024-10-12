@@ -55,7 +55,7 @@ void Database::saveList(const LinkedList<int>& list) {
     }
 
     Node<int>* current = list.head();
-    int id = 1;
+    int id = 0;
     while (current) {
         query.prepare("INSERT INTO list (id, data) VALUES (:id, :data)");
         query.bindValue(":id", id++);
