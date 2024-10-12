@@ -338,20 +338,19 @@ void MainWindow::on_copyButton_clicked() {
 
 
 void MainWindow::highlightNode(QGraphicsEllipseItem *node) {
-    QTimeLine *timeLine = new QTimeLine(500);
-    timeLine->setFrameRange(0, 100);
-    timeLine->setLoopCount(2);
+    // Define the blue color using the hex code #3498db
+    QColor color("#3498db");
 
-    QGraphicsItemAnimation *animation = new QGraphicsItemAnimation();
-    animation->setItem(node);
-    animation->setTimeLine(timeLine);
+    // Change the node's color to the custom blue
+    node->setBrush(QBrush(color));
 
-    animation->setScaleAt(0, 1.0, 1.0);
-    animation->setScaleAt(0.5, 1.3, 1.3);
-    animation->setScaleAt(1, 1.0, 1.0);
-
-    timeLine->start();
+    // Restore the original color (white) after a delay
+    QTimer::singleShot(1000, [=]() {
+        node->setBrush(QBrush(Qt::white));  // Reset to original color (or replace with any color you need)
+    });
 }
+
+
 
 
 void MainWindow::on_accessButton_clicked() {
@@ -366,7 +365,7 @@ void MainWindow::on_accessButton_clicked() {
             }*/
             highlightNode(ellipses_[index]);
             updateStatus("Accessed node at index " + QString::number(index) + " with value " + QString::number(node->data));
-            QMessageBox::information(this, "Node Access", "Node at index " + QString::number(index) + " has value " + QString::number(node->data));
+            //QMessageBox::information(this, "Node Access", "Node at index " + QString::number(index) + " has value " + QString::number(node->data));
             indexInput_->clear();
         } else {
             updateStatus("Node not found at index " + QString::number(index));
