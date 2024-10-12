@@ -215,7 +215,7 @@ void MainWindow::updateStatus(const QString &message) {
 void MainWindow::on_addBeforeButton_clicked() {
     bool ok;
     int value = nodeInput_->text().toInt(&ok);
-    int index = nodeInput_->text().toInt(&ok);
+    int index = indexInput_->text().toInt(&ok);
 
     if (ok && list_->size() == 0) {
         list_->addAfter(nullptr, value);
@@ -278,20 +278,26 @@ void MainWindow::fadeOutNode(QGraphicsEllipseItem *node) {
 
 void MainWindow::on_removeButton_clicked() {
     bool ok;
-    int index = nodeInput_->text().toInt(&ok);
+    int index = indexInput_->text().toInt(&ok);
     if (ok && index >= 0 && index < list_->size()) {
         Node<int>* node = list_->access(index);
         if (node) {
-            /*QGraphicsEllipseItem *item = dynamic_cast<QGraphicsEllipseItem *>(scene_->items()[index]);
-            if (item) {
-                fadeOutNode(item);  // Animate removal
-            }*/
             fadeOutNode(ellipses_[index]);
+
             list_->remove(node);
-            list_->printList();
+
+            QSqlQuery query;
+            query.prepare("DELETE FROM list WHERE id = :id");
+            query.bindValue(":id", index);
+            if (!query.exec()) {
+                qDebug() << "Failed to delete node from database: " << query.lastError().text();
+            } else {
+                qDebug() << "Node deleted from database";
+            }
+
             updateVisualization();
             updateStatus("Removed node at index " + QString::number(index));
-            nodeInput_->clear();
+            indexInput_->clear();
         } else {
             updateStatus("Node not found at index " + QString::number(index));
         }
@@ -299,6 +305,7 @@ void MainWindow::on_removeButton_clicked() {
         updateStatus("Invalid index for removal");
     }
 }
+
 
 
 void MainWindow::on_cleanButton_clicked() {
@@ -316,32 +323,46 @@ void MainWindow::on_sizeCapacityButton_clicked() {
 }
 
 void MainWindow::on_copyButton_clicked() {
-    LinkedList<int>* copiedList = list_->copy();
-    updateStatus("List copied");
-    QMessageBox::information(this, "Copy List", "The linked list has been copied.");
-    delete copiedList;
+    // Load the list from the database
+    LinkedList<int>* copiedList = db_->loadList();
+
+    // If the list is successfully loaded, replace the current list
+    if (copiedList) {
+        delete list_;  // Delete the current list
+        list_ = copiedList;  // Assign the loaded list
+
+        // Update the visualization to reflect the new list
+        updateVisualization();
+
+        // Update the status
+        updateStatus("List loaded from database");
+        QMessageBox::information(this, "Copy List", "The linked list has been loaded from the database.");
+    } else {
+        updateStatus("Failed to load list from database");
+        QMessageBox::warning(this, "Error", "Failed to load linked list from the database.");
+    }
 }
+
 
 void MainWindow::highlightNode(QGraphicsEllipseItem *node) {
-    QTimeLine *timeLine = new QTimeLine(500);
-    timeLine->setFrameRange(0, 100);
-    timeLine->setLoopCount(2);
+    // Define the blue color using the hex code #3498db
+    QColor color("#3498db");
 
-    QGraphicsItemAnimation *animation = new QGraphicsItemAnimation();
-    animation->setItem(node);
-    animation->setTimeLine(timeLine);
+    // Change the node's color to the custom blue
+    node->setBrush(QBrush(color));
 
-    animation->setScaleAt(0, 1.0, 1.0);
-    animation->setScaleAt(0.5, 1.3, 1.3);
-    animation->setScaleAt(1, 1.0, 1.0);
-
-    timeLine->start();
+    // Restore the original color (white) after a delay
+    QTimer::singleShot(1000, [=]() {
+        node->setBrush(QBrush(Qt::white));  // Reset to original color (or replace with any color you need)
+    });
 }
+
+
 
 
 void MainWindow::on_accessButton_clicked() {
     bool ok;
-    int index = nodeInput_->text().toInt(&ok);
+    int index = indexInput_->text().toInt(&ok);
     if (ok && index >= 0 && index < list_->size()) {
         Node<int>* node = list_->access(index);
         if (node) {
@@ -351,8 +372,8 @@ void MainWindow::on_accessButton_clicked() {
             }*/
             highlightNode(ellipses_[index]);
             updateStatus("Accessed node at index " + QString::number(index) + " with value " + QString::number(node->data));
-            QMessageBox::information(this, "Node Access", "Node at index " + QString::number(index) + " has value " + QString::number(node->data));
-            nodeInput_->clear();
+            //QMessageBox::information(this, "Node Access", "Node at index " + QString::number(index) + " has value " + QString::number(node->data));
+            indexInput_->clear();
         } else {
             updateStatus("Node not found at index " + QString::number(index));
         }

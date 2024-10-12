@@ -34,7 +34,7 @@ bool Database::connect() {
     qDebug() << "Database: connection ok";
 
     QSqlQuery query(db_);
-    if (!query.exec("CREATE TABLE IF NOT EXISTS list (id INTEGER PRIMARY KEY, data INTEGER)")) {
+    if (!query.exec("CREATE TABLE IF NOT EXISTS list (id INTEGER PRIMARY KEY, data INTEGER, prev INTEGER, next INTEGER)")) {
         qDebug() << "Failed to create table 'list':" << query.lastError().text();
         return false;
     } else {
@@ -42,6 +42,7 @@ bool Database::connect() {
     }
     return true;
 }
+
 
 void Database::saveList(const LinkedList<int>& list) {
     if (!db_.isOpen()) {
@@ -55,17 +56,28 @@ void Database::saveList(const LinkedList<int>& list) {
     }
 
     Node<int>* current = list.head();
-    int id = 1;
+    Node<int>* previous = nullptr;
+    int id = 0;
+
     while (current) {
-        query.prepare("INSERT INTO list (id, data) VALUES (:id, :data)");
+        Node<int>* nextNode = current->next;
+
+        query.prepare("INSERT INTO list (id, data, prev, next) VALUES (:id, :data, :prev, :next)");
         query.bindValue(":id", id++);
         query.bindValue(":data", current->data);
+        query.bindValue(":prev", previous ? previous->data : QVariant(QVariant::Int)); // Set prev value
+        query.bindValue(":next", nextNode ? nextNode->data : QVariant(QVariant::Int)); // Set next value
+
         if (!query.exec()) {
             qDebug() << "Error inserting data into 'list':" << query.lastError().text();
         }
-        current = current->next;
+
+        previous = current;  // Keep track of the previous node
+        current = nextNode;  // Move to the next node
     }
 }
+
+
 
 LinkedList<int>* Database::loadList() {
     LinkedList<int>* list = new LinkedList<int>();
@@ -75,22 +87,29 @@ LinkedList<int>* Database::loadList() {
     }
 
     QSqlQuery query(db_);
-    if (!query.exec("SELECT data FROM list ORDER BY id")) {
+    if (!query.exec("SELECT id, data, prev, next FROM list ORDER BY id")) {
         qDebug() << "Error reading from the list table:" << query.lastError().text();
         return list;
     }
 
-    Node<int>* lastNode = nullptr;
+    QMap<int, Node<int>*> nodeMap;  // To keep track of nodes using their IDs
+
     while (query.next()) {
-        int data = query.value(0).toInt();
-        if (lastNode == nullptr) {
-            list->addAfter(nullptr, data);
-            lastNode = list->head();
+        int id = query.value(0).toInt();
+        int data = query.value(1).toInt();
+        Node<int>* newNode = new Node<int>(data);
+
+        if (list->head() == nullptr) {
+            list->addAfter(nullptr, data);  // Add the first node
         } else {
+            Node<int>* lastNode = list->access(list->size() - 1);
             list->addAfter(lastNode, data);
-            lastNode = lastNode->next;
         }
+
+        // Add the new node to the map with its ID
+        nodeMap[id] = newNode;
     }
+
     return list;
 }
 
